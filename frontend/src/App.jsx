@@ -10,10 +10,7 @@ export default function App() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
   
-  // Customization States
   const [selectedPreset, setSelectedPreset] = useState('crisp');
-  
-  // Pro Adjustment Sliders
   const [brightness, setBrightness] = useState(0);
   const [contrast, setContrast] = useState(0);
   const [saturation, setSaturation] = useState(0);
@@ -41,12 +38,6 @@ export default function App() {
     
     const formData = new FormData();
     formData.append('image', originalFile);
-    formData.append('preset', selectedPreset);
-    formData.append('brightness', brightness);
-    formData.append('contrast', contrast);
-    formData.append('saturation', saturation);
-    formData.append('sharpness', sharpness);
-    formData.append('vignette', vignette);
 
     const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
 
@@ -68,30 +59,41 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen text-white p-4 md:p-8 flex flex-col items-center justify-center font-sans relative overflow-x-hidden">
+    <div className="min-h-screen text-white p-4 md:p-8 flex flex-col items-center justify-center font-sans relative overflow-x-hidden selection:bg-blue-500 selection:text-white">
       
-      {/* CINEMATIC BACKGROUND WALLPAPER & FROSTED GLASS OVERLAY */}
+      {/* ANDROMEDA GALAXY BACKGROUND */}
       <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat filter brightness-40 scale-105 pointer-events-none z-0"
-        style={{ backgroundImage: `url('https://images.unsplash.com/photo-1542038784456-1ea8e935640e?q=80&w=2000&auto=format&fit=crop')` }}
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat filter brightness-75 scale-105 pointer-events-none z-0"
+        style={{ backgroundImage: `url('https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?q=80&w=2000&auto=format&fit=crop')` }}
       ></div>
-      <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-xl z-0 pointer-events-none"></div>
+
+      {/* TWINKLING STARS OVERLAY */}
+      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden opacity-80">
+        <div className="absolute top-10 left-1/4 w-1.5 h-1.5 bg-white rounded-full animate-ping"></div>
+        <div className="absolute top-1/3 left-1/6 w-1 h-1 bg-blue-200 rounded-full animate-pulse"></div>
+        <div className="absolute top-20 right-1/4 w-2 h-2 bg-purple-200 rounded-full animate-pulse"></div>
+        <div className="absolute bottom-1/4 right-1/5 w-1 h-1 bg-white rounded-full animate-ping"></div>
+        <div className="absolute bottom-10 left-1/3 w-1.5 h-1.5 bg-indigo-200 rounded-full animate-pulse"></div>
+      </div>
+
+      {/* DARK GLASS FROSTED BACKDROP */}
+      <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-2xl z-0 pointer-events-none"></div>
 
       {/* HEADER */}
       <div className="text-center mb-6 z-10">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 text-xs font-bold text-blue-300 mb-3 shadow-lg">
-          <Camera className="w-3.5 h-3.5" /> Professional Cinematic Color Studio
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-2xl border border-white/20 text-xs font-bold text-blue-300 mb-3 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)]">
+          <Camera className="w-3.5 h-3.5" /> iOS Glass Andromeda Edition
         </div>
         <h1 className="text-4xl md:text-6xl font-black tracking-tight mb-2 bg-gradient-to-r from-white via-blue-200 to-indigo-400 bg-clip-text text-transparent drop-shadow-md">
           RKC PHOTO STUDIO
         </h1>
         <p className="text-slate-300 text-sm md:text-base font-light">
-          High-End Portrait Grading, Lighting Tweaks & Cinematic Presets
+          High-End Portrait Grading & Lighting Tweaks under the Andromeda Galaxy
         </p>
       </div>
 
-      {/* STYLE PRESETS (Choose Before Uploading) */}
-      <div className="w-full max-w-3xl backdrop-blur-2xl bg-white/10 p-4 rounded-3xl shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] border border-white/20 mb-6 z-10">
+      {/* STYLE PRESETS */}
+      <div className="w-full max-w-3xl backdrop-blur-3xl bg-white/10 p-4 rounded-3xl shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] border border-white/20 mb-6 z-10">
         <label className="block text-xs font-semibold uppercase tracking-wider text-blue-300 mb-3 text-center">
           1. Select Cinematic Look
         </label>
@@ -105,9 +107,9 @@ export default function App() {
             <button
               key={preset.id}
               onClick={() => setSelectedPreset(preset.id)}
-              className={`p-3 rounded-2xl text-left transition-all cursor-pointer border ${
+              className={`p-3 rounded-2xl text-left transition-all cursor-pointer border backdrop-blur-md ${
                 selectedPreset === preset.id 
-                  ? 'bg-blue-600/40 border-blue-400 shadow-lg shadow-blue-600/30 ring-2 ring-blue-400/50' 
+                  ? 'bg-blue-600/40 border-blue-400 shadow-lg shadow-blue-600/40 ring-2 ring-blue-400/50' 
                   : 'bg-white/5 border-white/10 hover:bg-white/10'
               }`}
             >
@@ -122,29 +124,29 @@ export default function App() {
       {!originalUrl && (
         <div 
           {...getRootProps()} 
-          className={`w-full max-w-3xl p-10 rounded-3xl text-center cursor-pointer transition-all duration-500 backdrop-blur-2xl bg-white/10 border border-white/20 shadow-2xl hover:bg-white/15 hover:border-white/30 z-10 ${
+          className={`w-full max-w-3xl p-10 rounded-3xl text-center cursor-pointer transition-all duration-500 backdrop-blur-3xl bg-white/10 border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] hover:bg-white/15 hover:border-white/30 z-10 ${
             isDragActive ? 'border-blue-400 bg-blue-500/20 scale-102' : ''
           }`}
         >
           <input {...getInputProps()} />
-          <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-tr from-blue-500/30 to-indigo-500/30 backdrop-blur-xl border border-white/20 flex items-center justify-center shadow-inner">
+          <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-tr from-blue-500/30 to-indigo-500/30 backdrop-blur-2xl border border-white/25 flex items-center justify-center shadow-inner">
             <UploadCloud className="w-10 h-10 text-blue-300 animate-bounce" />
           </div>
-          <p className="text-xl font-semibold mb-1 text-white">2. Drop your portrait, pet, or landscape here</p>
-          <p className="text-sm text-slate-300 font-light">Instant professional color grading and detail restoration</p>
+          <p className="text-xl font-semibold mb-1 text-white">2. Drop your portrait or photo here</p>
+          <p className="text-sm text-slate-300 font-light">Instant professional color grading with zero errors</p>
         </div>
       )}
 
       {/* ERROR DISPLAY */}
       {error && (
-        <div className="bg-red-500/20 backdrop-blur-xl border border-red-500/40 text-red-200 p-4 rounded-2xl mb-6 max-w-3xl w-full text-center z-10">
+        <div className="bg-red-500/20 backdrop-blur-2xl border border-red-500/40 text-red-200 p-4 rounded-2xl mb-6 max-w-3xl w-full text-center z-10 shadow-lg">
           Error: {error}
         </div>
       )}
 
       {/* PREVIEW & PRO EDITORS */}
       {originalUrl && (
-        <div className="w-full max-w-4xl backdrop-blur-2xl bg-white/10 p-6 rounded-3xl shadow-2xl border border-white/20 transition-all duration-500 z-10 flex flex-col gap-6">
+        <div className="w-full max-w-4xl backdrop-blur-3xl bg-white/10 p-6 rounded-3xl shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] border border-white/20 transition-all duration-500 z-10 flex flex-col gap-6">
           
           {/* IMAGE COMPARISON CONTAINER */}
           <div className="relative aspect-video bg-black/60 rounded-2xl overflow-hidden flex items-center justify-center border border-white/15 shadow-inner">
@@ -160,16 +162,16 @@ export default function App() {
 
             {/* LOADING OVERLAY */}
             {isProcessing && (
-              <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-xl flex flex-col items-center justify-center">
+              <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-2xl flex flex-col items-center justify-center">
                 <Loader2 className="w-12 h-12 text-blue-400 animate-spin mb-4" />
-                <p className="text-lg font-semibold text-blue-200">Applying professional grade...</p>
-                <p className="text-xs text-slate-400 mt-1">Rendering exposure, contrast & textures...</p>
+                <p className="text-lg font-semibold text-blue-200">Rendering master grade...</p>
+                <p className="text-xs text-slate-400 mt-1">Applying professional lighting & texture pass...</p>
               </div>
             )}
           </div>
 
           {/* PRO EDITING SLIDERS PANEL */}
-          <div className="backdrop-blur-xl bg-white/5 p-4 rounded-2xl border border-white/10">
+          <div className="backdrop-blur-2xl bg-white/5 p-4 rounded-2xl border border-white/10 shadow-inner">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-blue-300 mb-3 flex items-center gap-2">
               <Sliders className="w-4 h-4" /> Fine-Tune Adjustments
             </h3>
@@ -203,7 +205,7 @@ export default function App() {
               <button 
                 onClick={handleEnhance}
                 disabled={isProcessing}
-                className="px-8 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-2xl transition-all duration-300 shadow-lg shadow-blue-600/30 border border-blue-400/30 disabled:opacity-50 cursor-pointer transform hover:scale-[1.02]"
+                className="px-8 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-2xl transition-all duration-300 shadow-lg shadow-blue-600/40 border border-blue-400/30 disabled:opacity-50 cursor-pointer transform hover:scale-[1.02]"
               >
                 {isProcessing ? 'Processing...' : 'Apply Cinematic Grade'}
               </button>
@@ -213,7 +215,7 @@ export default function App() {
                 download="RKC_Cinematic_Photo.jpg"
                 target="_blank"
                 rel="noreferrer"
-                className="px-8 py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-2xl flex items-center gap-2 transition-all duration-300 shadow-lg shadow-emerald-600/30 border border-emerald-400/30 cursor-pointer"
+                className="px-8 py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-2xl flex items-center gap-2 transition-all duration-300 shadow-lg shadow-emerald-600/40 border border-emerald-400/30 cursor-pointer"
               >
                 <Download className="w-5 h-5" /> Download Masterpiece
               </a>

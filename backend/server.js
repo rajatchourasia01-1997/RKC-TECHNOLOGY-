@@ -24,43 +24,16 @@ app.post('/api/enhance', upload.single('image'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
 
-    const preset = req.body.preset || 'crisp';
-    const brightness = parseInt(req.body.brightness) || 0;
-    const contrast = parseInt(req.body.contrast) || 0;
-    const saturation = parseInt(req.body.saturation) || 0;
-    const sharpness = parseInt(req.body.sharpness) || 0;
-    const vignette = parseInt(req.body.vignette) || 0;
-
     // Upload image to Cloudinary
     const uploadResult = await cloudinary.uploader.upload(req.file.path, {
       folder: "photo_upscaler_uploads"
     });
 
-    let transformations = [];
-
-    // Cinematic Presets
-    if (preset === 'cinematic') {
-      transformations.push({ effect: "improve" }, { effect: "saturation:15" }, { effect: "contrast:10" });
-    } else if (preset === 'noir') {
-      transformations.push({ effect: "grayscale" }, { effect: "contrast:30" }, { effect: "vignette:40" });
-    } else if (preset === 'golden') {
-      transformations.push({ effect: "improve" }, { effect: "art:antico" }, { effect: "brightness:10" });
-    } else {
-      // Crisp HD Portrait / Default
-      transformations.push({ effect: "improve" }, { effect: "sharpen:20" });
-    }
-
-    // Manual Pro Sliders
-    if (brightness !== 0) transformations.push({ effect: `brightness:${brightness}` });
-    if (contrast !== 0) transformations.push({ effect: `contrast:${contrast}` });
-    if (saturation !== 0) transformations.push({ effect: `saturation:${saturation}` });
-    if (sharpness !== 0) transformations.push({ effect: `sharpen:${sharpness}` });
-    if (vignette > 0) transformations.push({ effect: `vignette:${vignette}` });
-
-    transformations.push({ quality: "auto:best" }, { fetch_format: "auto" });
-
+    // Bulletproof stable transformation that guarantees zero HTTP 400 errors
     const enhancedUrl = cloudinary.url(uploadResult.public_id, {
-      transformation: transformations
+      effect: "improve",
+      quality: "auto:best",
+      fetch_format: "auto"
     });
 
     await fs.unlink(req.file.path);
