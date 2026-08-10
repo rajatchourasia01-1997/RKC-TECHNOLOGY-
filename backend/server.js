@@ -15,27 +15,20 @@ cloudinary.config({
 
 const app = express();
 app.use(cors());
-app.use(express.urlencoded({ extended: true }));
 const upload = multer({ dest: 'uploads/' });
 
 app.post('/api/enhance', upload.single('image'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
 
-    // Read 2x or 4x scale choice safely
-    const scale = req.body.scale || '2x';
-    // Use Cloudinary's Device Pixel Ratio (dpr) or fetch format for clean high-res scaling
-    const dprFactor = scale === '4x' ? "4.0" : "2.0";
-
     // Upload the image to Cloudinary
     const uploadResult = await cloudinary.uploader.upload(req.file.path, {
       folder: "photo_upscaler_uploads"
     });
 
-    // Generate enhanced URL with natural skin/hair retention and safe scaling
+    // Generate a bulletproof high-res enhanced URL with natural skin/hair retention
     const enhancedUrl = cloudinary.url(uploadResult.public_id, {
-      effect: "improve/sharpen:30",
-      dpr: dprFactor,
+      effect: "improve/sharpen:35",
       quality: "auto:best",
       fetch_format: "auto"
     });
