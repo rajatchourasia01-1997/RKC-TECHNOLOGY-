@@ -26,11 +26,10 @@ app.post('/api/enhance', upload.single('image'), async (req, res) => {
       folder: "photo_upscaler_uploads"
     });
 
-    // Generate enhanced URL using Cloudinary's official transformation array to prevent 400 errors
+    // Generate clean enhanced URL without harsh sharpening noise
     const enhancedUrl = cloudinary.url(uploadResult.public_id, {
       transformation: [
         { effect: "improve" },
-        { effect: "sharpen:35" },
         { quality: "auto:best" },
         { fetch_format: "auto" }
       ]
