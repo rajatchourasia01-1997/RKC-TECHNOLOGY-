@@ -32,8 +32,10 @@ export default function App() {
     const formData = new FormData();
     formData.append('image', originalFile);
 
+    const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
+
     try {
-      const res = await fetch('http://localhost:3001/api/enhance', {
+      const res = await fetch(`${API_URL}/api/enhance`, {
         method: 'POST',
         body: formData,
       });
