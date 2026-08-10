@@ -21,16 +21,22 @@ app.post('/api/enhance', upload.single('image'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
 
+    // Read the scale option sent from the frontend ('2x' or '4x')
+    const scale = req.body.scale || '2x';
+    const multiplier = scale === '4x' ? 4.0 : 2.0;
+
     // Upload the image to Cloudinary
     const uploadResult = await cloudinary.uploader.upload(req.file.path, {
       folder: "photo_upscaler_uploads"
     });
 
-    // Use Cloudinary's free built-in AI/enhancement transformation to upscale/sharpen
-    // This creates an enhanced version URL for free without needing Replicate
+    // Generate enhanced URL with 2x/4x scaling and tuned sharpening 
+    // to preserve hair texture, natural skin tones, and eye details.
     const enhancedUrl = cloudinary.url(uploadResult.public_id, {
-      effect: "improve",
-      quality: "auto",
+      width: multiplier,
+      crop: "scale",
+      effect: "improve/sharpen:30",
+      quality: "auto:best",
       fetch_format: "auto"
     });
 
