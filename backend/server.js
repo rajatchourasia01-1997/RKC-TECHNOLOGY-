@@ -26,11 +26,14 @@ app.post('/api/enhance', upload.single('image'), async (req, res) => {
       folder: "photo_upscaler_uploads"
     });
 
-    // Generate a bulletproof high-res enhanced URL with natural skin/hair retention
+    // Generate enhanced URL using Cloudinary's official transformation array to prevent 400 errors
     const enhancedUrl = cloudinary.url(uploadResult.public_id, {
-      effect: "improve/sharpen:35",
-      quality: "auto:best",
-      fetch_format: "auto"
+      transformation: [
+        { effect: "improve" },
+        { effect: "sharpen:35" },
+        { quality: "auto:best" },
+        { fetch_format: "auto" }
+      ]
     });
 
     await fs.unlink(req.file.path);
