@@ -15,24 +15,52 @@ cloudinary.config({
 
 const app = express();
 app.use(cors());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
 const upload = multer({ dest: 'uploads/' });
 
 app.post('/api/enhance', upload.single('image'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
 
-    // Upload the image to Cloudinary
+    const style = req.body.style || 'ghibli';
+    const brightness = parseInt(req.body.brightness) || 0;
+    const contrast = parseInt(req.body.contrast) || 0;
+    const saturation = parseInt(req.body.saturation) || 0;
+    const sharpness = parseInt(req.body.sharpness) || 0;
+    const vignette = parseInt(req.body.vignette) || 0;
+
+    // Upload image to Cloudinary
     const uploadResult = await cloudinary.uploader.upload(req.file.path, {
       folder: "photo_upscaler_uploads"
     });
 
-    // Generate clean enhanced URL without harsh sharpening noise
+    // Build dynamic transformation array based on style & sliders
+    let transformations = [];
+
+    // Style Mapping
+    if (style === 'ghibli') {
+      transformations.push({ effect: "cartoonify" }, { effect: "saturation:25" }, { effect: "art:athena" });
+    } else if (style === 'pixar') {
+      transformations.push({ effect: "cartoonify:30" }, { effect: "saturation:40" }, { effect: "brightness:10" });
+    } else if (style === 'anime') {
+      transformations.push({ effect: "cartoonify" }, { effect: "art:incognito" });
+    } else {
+      transformations.push({ effect: "improve" });
+    }
+
+    // Apply User Sliders if active
+    if (brightness !== 0) transformations.push({ effect: `brightness:${brightness}` });
+    if (contrast !== 0) transformations.push({ effect: `contrast:${contrast}` });
+    if (saturation !== 0) transformations.push({ effect: `saturation:${saturation}` });
+    if (sharpness !== 0) transformations.push({ effect: `sharpen:${sharpness}` });
+    if (vignette > 0) transformations.push({ effect: `vignette:${vignette}` });
+
+    transformations.push({ quality: "auto:best" }, { fetch_format: "auto" });
+
     const enhancedUrl = cloudinary.url(uploadResult.public_id, {
-      transformation: [
-        { effect: "improve" },
-        { quality: "auto:best" },
-        { fetch_format: "auto" }
-      ]
+      transformation: transformations
     });
 
     await fs.unlink(req.file.path);
@@ -46,4 +74,4 @@ app.post('/api/enhance', upload.single('image'), async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => console.log(`Backend running on port ${PORT} (Free Mode)`));
+app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
