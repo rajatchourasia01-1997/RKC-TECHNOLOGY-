@@ -24,7 +24,7 @@ app.post('/api/enhance', upload.single('image'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
 
-    const style = req.body.style || 'ghibli';
+    const preset = req.body.preset || 'crisp';
     const brightness = parseInt(req.body.brightness) || 0;
     const contrast = parseInt(req.body.contrast) || 0;
     const saturation = parseInt(req.body.saturation) || 0;
@@ -36,21 +36,21 @@ app.post('/api/enhance', upload.single('image'), async (req, res) => {
       folder: "photo_upscaler_uploads"
     });
 
-    // Build dynamic transformation array based on style & sliders
     let transformations = [];
 
-    // Style Mapping
-    if (style === 'ghibli') {
-      transformations.push({ effect: "cartoonify" }, { effect: "saturation:25" }, { effect: "art:athena" });
-    } else if (style === 'pixar') {
-      transformations.push({ effect: "cartoonify:30" }, { effect: "saturation:40" }, { effect: "brightness:10" });
-    } else if (style === 'anime') {
-      transformations.push({ effect: "cartoonify" }, { effect: "art:incognito" });
+    // Cinematic Presets
+    if (preset === 'cinematic') {
+      transformations.push({ effect: "improve" }, { effect: "saturation:15" }, { effect: "contrast:10" });
+    } else if (preset === 'noir') {
+      transformations.push({ effect: "grayscale" }, { effect: "contrast:30" }, { effect: "vignette:40" });
+    } else if (preset === 'golden') {
+      transformations.push({ effect: "improve" }, { effect: "art:antico" }, { effect: "brightness:10" });
     } else {
-      transformations.push({ effect: "improve" });
+      // Crisp HD Portrait / Default
+      transformations.push({ effect: "improve" }, { effect: "sharpen:20" });
     }
 
-    // Apply User Sliders if active
+    // Manual Pro Sliders
     if (brightness !== 0) transformations.push({ effect: `brightness:${brightness}` });
     if (contrast !== 0) transformations.push({ effect: `contrast:${contrast}` });
     if (saturation !== 0) transformations.push({ effect: `saturation:${saturation}` });
