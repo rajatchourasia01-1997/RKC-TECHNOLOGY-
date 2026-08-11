@@ -24,7 +24,6 @@ app.post('/api/enhance', upload.single('image'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
 
-    // Safely parse slider and preset values with numeric fallbacks
     const preset = req.body.preset || 'crisp';
     const brightness = parseInt(req.body.brightness, 10) || 0;
     const contrast = parseInt(req.body.contrast, 10) || 0;
@@ -32,38 +31,31 @@ app.post('/api/enhance', upload.single('image'), async (req, res) => {
     const sharpness = parseInt(req.body.sharpness, 10) || 0;
     const vignette = parseInt(req.body.vignette, 10) || 0;
 
-    // Upload image to Cloudinary
+    let transformationString = "f_auto,q_auto";
+
+    if (preset === 'cinematic') {
+      transformationString += ",e_improve,e_saturation:15,e_contrast:10";
+    } else if (preset === 'noir') {
+      transformationString += ",e_grayscale,e_contrast:30";
+    } else if (preset === 'golden') {
+      transformationString += ",e_improve,e_brightness:10";
+    } else {
+      transformationString += ",e_improve,e_sharpen:20";
+    }
+
+    if (brightness !== 0) transformationString += `,e_brightness:${brightness}`;
+    if (contrast !== 0) transformationString += `,e_contrast:${contrast}`;
+    if (saturation !== 0) transformationString += `,e_saturation:${saturation}`;
+    if (sharpness !== 0) transformationString += `,e_sharpness:${sharpness}`;
+    if (vignette > 0) transformationString += `,e_vignette:${vignette}`;
+
     const uploadResult = await cloudinary.uploader.upload(req.file.path, {
       folder: "photo_upscaler_uploads"
     });
 
-    // Build transformation array safely
-    let transformations = [];
-
-    // Apply preset logic safely
-    if (preset === 'cinematic') {
-      transformations.push({ effect: "improve" }, { effect: "saturation:15" }, { effect: "contrast:10" });
-    } else if (preset === 'noir') {
-      transformations.push({ effect: "grayscale" }, { effect: "contrast:30" }, { effect: "vignette:40" });
-    } else if (preset === 'golden') {
-      transformations.push({ effect: "improve" }, { effect: "art:antico" }, { effect: "brightness:10" });
-    } else {
-      transformations.push({ effect: "improve" }, { effect: "sharpen:20" });
-    }
-
-    // Safely append optional adjustment sliders only if non-zero
-    if (brightness !== 0) transformations.push({ effect: `brightness:${brightness}` });
-    if (contrast !== 0) transformations.push({ effect: `contrast:${contrast}` });
-    if (saturation !== 0) transformations.push({ effect: `saturation:${saturation}` });
-    if (sharpness !== 0) transformations.push({ effect: `sharpen:${sharpness}` });
-    if (vignette > 0) transformations.push({ effect: `vignette:${vignette}` });
-
-    // Enforce optimization standards
-    transformations.push({ quality: "auto:best" }, { fetch_format: "auto" });
-
-    const enhancedUrl = cloudinary.url(uploadResult.public_id, {
-      transformation: transformations
-    });
+    // Safely insert valid transformation syntax into the secure Cloudinary URL
+    const urlParts = uploadResult.secure_url.split('/upload/');
+    const enhancedUrl = `${urlParts[0]}/upload/${transformationString}/${urlParts[1]}`;
 
     await fs.unlink(req.file.path);
     res.json({ success: true, resultUrl: enhancedUrl });
