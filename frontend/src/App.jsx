@@ -26,7 +26,6 @@ export default function App() {
     setEnhancedUrl(null);
     setError(null);
 
-    // FileReader converts image to Base64 for 100% Android WebView compatibility
     const reader = new FileReader();
     reader.onloadend = () => {
       setOriginalUrl(reader.result);
@@ -34,9 +33,16 @@ export default function App() {
     reader.readAsDataURL(file);
   };
 
+  // Expanded format extensions for JPEG, PNG, WEBP, AVIF, TIFF, BMP, RAW, HEIF/HEIC, SVG, EPS, PSD, AI
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: { 'image/*': [] },
+    accept: {
+      'image/*': [
+        '.jpeg', '.jpg', '.png', '.webp', '.avif', '.tiff', '.tif',
+        '.bmp', '.raw', '.heif', '.heic', '.svg', '.eps', '.psd', '.ai',
+        '.dng', '.cr2', '.nef', '.arw'
+      ]
+    },
     multiple: false
   });
 
@@ -73,23 +79,11 @@ export default function App() {
     }
   };
 
-  // Direct blob download for mobile Chrome and Capacitor compatibility
-  const handleDownload = async () => {
+  // Forces native Cloudinary attachment attachment for 100% Android APK download compatibility
+  const handleDownload = () => {
     if (!enhancedUrl) return;
-    try {
-      const response = await fetch(enhancedUrl);
-      const blob = await response.blob();
-      const blobUrl = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = blobUrl;
-      link.download = 'RKC_Cinematic_Photo.jpg';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(blobUrl);
-    } catch (err) {
-      window.open(enhancedUrl, '_blank');
-    }
+    const downloadUrl = enhancedUrl.replace('/upload/', '/upload/fl_attachment:RKC_Cinematic_Photo/');
+    window.open(downloadUrl, '_system') || (window.location.href = downloadUrl);
   };
 
   return (
@@ -164,7 +158,7 @@ export default function App() {
             <UploadCloud className="w-10 h-10 text-cyan-200 animate-bounce" />
           </div>
           <p className="text-xl font-bold mb-1 text-white drop-shadow">2. Drop your portrait or photo here</p>
-          <p className="text-sm text-slate-100 font-semibold">Instant professional color grading with brilliant space clarity</p>
+          <p className="text-sm text-slate-100 font-semibold">Supports JPEG, PNG, WEBP, AVIF, TIFF, BMP, RAW, HEIF/HEIC, SVG, EPS, PSD, AI</p>
         </div>
       )}
 

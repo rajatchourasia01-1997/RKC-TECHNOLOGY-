@@ -31,8 +31,10 @@ app.post('/api/enhance', upload.single('image'), async (req, res) => {
     const sharpness = parseInt(req.body.sharpness, 10) || 0;
     const vignette = parseInt(req.body.vignette, 10) || 0;
 
+    // Enabled resource_type: "auto" to process RAW, HEIC, PSD, AI, EPS, SVG, TIFF, BMP, etc.
     const uploadResult = await cloudinary.uploader.upload(req.file.path, {
-      folder: "photo_upscaler_uploads"
+      folder: "photo_upscaler_uploads",
+      resource_type: "auto"
     });
 
     let transformation = [{ quality: "auto", fetch_format: "auto" }];
