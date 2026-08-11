@@ -20,10 +20,18 @@ export default function App() {
 
   const onDrop = (acceptedFiles) => {
     const file = acceptedFiles[0];
+    if (!file) return;
+
     setOriginalFile(file);
-    setOriginalUrl(URL.createObjectURL(file));
     setEnhancedUrl(null);
     setError(null);
+
+    // FileReader converts image to Base64 for 100% Android WebView compatibility
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setOriginalUrl(reader.result);
+    };
+    reader.readAsDataURL(file);
   };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -46,7 +54,7 @@ export default function App() {
     formData.append('sharpness', sharpness);
     formData.append('vignette', vignette);
 
-    const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
+    const API_URL = import.meta.env.VITE_BACKEND_URL || 'https://rkc-app.onrender.com';
 
     try {
       const res = await fetch(`${API_URL}/api/enhance`, {
@@ -65,16 +73,33 @@ export default function App() {
     }
   };
 
+  // Direct blob download for mobile Chrome and Capacitor compatibility
+  const handleDownload = async () => {
+    if (!enhancedUrl) return;
+    try {
+      const response = await fetch(enhancedUrl);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = 'RKC_Cinematic_Photo.jpg';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      window.open(enhancedUrl, '_blank');
+    }
+  };
+
   return (
     <div className="min-h-screen text-white p-4 md:p-8 flex flex-col items-center justify-center font-sans relative overflow-x-hidden selection:bg-pink-500 selection:text-white">
       
-      {/* ULTRA-HD VIBRANT COSMIC NEBULA & GALAXY BACKGROUND */}
       <div 
         className="fixed inset-0 bg-cover bg-center bg-no-repeat filter brightness-125 contrast-125 saturate-200 scale-105 pointer-events-none z-0"
         style={{ backgroundImage: `url('https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?q=80&w=3000&auto=format&fit=crop')` }}
       ></div>
 
-      {/* SUPERCHARGED COLORFUL TWINKLING & GLOWING STARS */}
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
         <div className="absolute top-10 left-1/5 w-4 h-4 bg-pink-400 rounded-full animate-ping shadow-[0_0_30px_#ec4899]"></div>
         <div className="absolute top-1/4 left-1/8 w-3.5 h-3.5 bg-cyan-300 rounded-full animate-pulse shadow-[0_0_25px_#06b6d4]"></div>
@@ -88,7 +113,6 @@ export default function App() {
         <div className="absolute bottom-10 right-20 w-4 h-4 bg-amber-300 rounded-full animate-pulse shadow-[0_0_30px_#f59e0b]"></div>
       </div>
 
-      {/* HEADER */}
       <div className="text-center mb-6 z-10">
         <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-white/[0.15] backdrop-blur-3xl border border-white/50 text-xs font-bold text-cyan-300 mb-3 shadow-[0_8px_32px_0_rgba(0,0,0,0.5)]">
           <Camera className="w-4 h-4 text-cyan-300 animate-pulse" /> iOS Glass Andromeda Edition
@@ -101,7 +125,6 @@ export default function App() {
         </p>
       </div>
 
-      {/* STYLE PRESETS (Vibrant Glassmorphism) */}
       <div className="w-full max-w-3xl backdrop-blur-3xl bg-white/[0.12] p-5 rounded-3xl shadow-[0_8px_32px_0_rgba(31,38,135,0.4)] border border-white/40 mb-6 z-10">
         <label className="block text-xs font-extrabold uppercase tracking-wider text-cyan-300 mb-3 text-center drop-shadow">
           1. Select Cinematic Look
@@ -129,7 +152,6 @@ export default function App() {
         </div>
       </div>
 
-      {/* DRAG & DROP ZONE */}
       {!originalUrl && (
         <div 
           {...getRootProps()} 
@@ -146,18 +168,15 @@ export default function App() {
         </div>
       )}
 
-      {/* ERROR DISPLAY */}
       {error && (
         <div className="bg-red-500/35 backdrop-blur-3xl border border-red-500/70 text-red-100 p-4 rounded-2xl mb-6 max-w-3xl w-full text-center z-10 shadow-lg">
           Error: {error}
         </div>
       )}
 
-      {/* PREVIEW & DYNAMIC IOS GLASS COMPARISON WIDGET */}
       {originalUrl && (
         <div className="w-full max-w-4xl backdrop-blur-3xl bg-white/[0.13] p-6 rounded-3xl shadow-[0_8px_32px_0_rgba(31,38,135,0.4)] border border-white/40 transition-all duration-500 z-10 flex flex-col gap-6">
           
-          {/* INTERACTIVE COMPARISON CONTAINER WITH MULTICOLOR GLOW ON PRESS */}
           <div 
             onTouchStart={() => setIsPressed(true)}
             onTouchEnd={() => setIsPressed(false)}
@@ -179,7 +198,6 @@ export default function App() {
               <img src={originalUrl} className="max-h-full max-w-full object-contain" alt="Preview" />
             )}
 
-            {/* LOADING OVERLAY */}
             {isProcessing && (
               <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-3xl flex flex-col items-center justify-center z-20">
                 <Loader2 className="w-12 h-12 text-cyan-400 animate-spin mb-4" />
@@ -189,7 +207,6 @@ export default function App() {
             )}
           </div>
 
-          {/* PRO EDITING SLIDERS PANEL */}
           <div className="backdrop-blur-3xl bg-white/[0.08] p-5 rounded-2xl border border-white/30 shadow-inner">
             <h3 className="text-xs font-bold uppercase tracking-wider text-cyan-300 mb-3 flex items-center gap-2 drop-shadow">
               <Sliders className="w-4 h-4" /> Fine-Tune Adjustments
@@ -218,7 +235,6 @@ export default function App() {
             </div>
           </div>
 
-          {/* ACTION BUTTONS */}
           <div className="flex flex-wrap justify-center gap-4">
             {!enhancedUrl ? (
               <button 
@@ -229,15 +245,12 @@ export default function App() {
                 {isProcessing ? 'Processing...' : 'Apply Cinematic Grade'}
               </button>
             ) : (
-              <a 
-                href={enhancedUrl}
-                download="RKC_Cinematic_Photo.jpg"
-                target="_blank"
-                rel="noreferrer"
+              <button 
+                onClick={handleDownload}
                 className="px-8 py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold rounded-2xl flex items-center gap-2 transition-all duration-300 shadow-[0_0_40px_rgba(16,185,129,0.9)] border border-emerald-300/70 cursor-pointer"
               >
                 <Download className="w-5 h-5" /> Download Masterpiece
-              </a>
+              </button>
             )}
             
             <button 

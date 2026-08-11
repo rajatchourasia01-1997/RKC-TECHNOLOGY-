@@ -31,31 +31,32 @@ app.post('/api/enhance', upload.single('image'), async (req, res) => {
     const sharpness = parseInt(req.body.sharpness, 10) || 0;
     const vignette = parseInt(req.body.vignette, 10) || 0;
 
-    let transformationString = "f_auto,q_auto";
-
-    if (preset === 'cinematic') {
-      transformationString += ",e_improve,e_saturation:15,e_contrast:10";
-    } else if (preset === 'noir') {
-      transformationString += ",e_grayscale,e_contrast:30";
-    } else if (preset === 'golden') {
-      transformationString += ",e_improve,e_brightness:10";
-    } else {
-      transformationString += ",e_improve,e_sharpen:20";
-    }
-
-    if (brightness !== 0) transformationString += `,e_brightness:${brightness}`;
-    if (contrast !== 0) transformationString += `,e_contrast:${contrast}`;
-    if (saturation !== 0) transformationString += `,e_saturation:${saturation}`;
-    if (sharpness !== 0) transformationString += `,e_sharpness:${sharpness}`;
-    if (vignette > 0) transformationString += `,e_vignette:${vignette}`;
-
     const uploadResult = await cloudinary.uploader.upload(req.file.path, {
       folder: "photo_upscaler_uploads"
     });
 
-    // Safely insert valid transformation syntax into the secure Cloudinary URL
-    const urlParts = uploadResult.secure_url.split('/upload/');
-    const enhancedUrl = `${urlParts[0]}/upload/${transformationString}/${urlParts[1]}`;
+    let transformation = [{ quality: "auto", fetch_format: "auto" }];
+
+    if (preset === 'cinematic') {
+      transformation.push({ effect: "improve" }, { effect: "saturation:15" }, { effect: "contrast:10" });
+    } else if (preset === 'noir') {
+      transformation.push({ effect: "grayscale" }, { effect: "contrast:30" });
+    } else if (preset === 'golden') {
+      transformation.push({ effect: "improve" }, { effect: "brightness:10" });
+    } else {
+      transformation.push({ effect: "improve" }, { effect: "sharpen:20" });
+    }
+
+    if (brightness !== 0) transformation.push({ effect: `brightness:${brightness}` });
+    if (contrast !== 0) transformation.push({ effect: `contrast:${contrast}` });
+    if (saturation !== 0) transformation.push({ effect: `saturation:${saturation}` });
+    if (sharpness !== 0) transformation.push({ effect: `sharpen:${sharpness}` });
+    if (vignette > 0) transformation.push({ effect: `vignette:${vignette}` });
+
+    const enhancedUrl = cloudinary.url(uploadResult.public_id, {
+      secure: true,
+      transformation: transformation
+    });
 
     await fs.unlink(req.file.path);
     res.json({ success: true, resultUrl: enhancedUrl });
