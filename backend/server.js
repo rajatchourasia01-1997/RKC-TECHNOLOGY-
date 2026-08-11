@@ -24,7 +24,7 @@ app.post('/api/enhance', upload.single('image'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
 
-    // Safely parse slider and preset values with numeric fallbacks to prevent HTTP 400 errors
+    // Safely parse slider and preset values with numeric fallbacks
     const preset = req.body.preset || 'crisp';
     const brightness = parseInt(req.body.brightness, 10) || 0;
     const contrast = parseInt(req.body.contrast, 10) || 0;
@@ -37,7 +37,7 @@ app.post('/api/enhance', upload.single('image'), async (req, res) => {
       folder: "photo_upscaler_uploads"
     });
 
-    // Build a safe transformation array using structured objects (prevents URL syntax errors)
+    // Build transformation array safely
     let transformations = [];
 
     // Apply preset logic safely
@@ -58,7 +58,7 @@ app.post('/api/enhance', upload.single('image'), async (req, res) => {
     if (sharpness !== 0) transformations.push({ effect: `sharpen:${sharpness}` });
     if (vignette > 0) transformations.push({ effect: `vignette:${vignette}` });
 
-    // Enforce optimization standards (f_auto, q_auto)
+    // Enforce optimization standards
     transformations.push({ quality: "auto:best" }, { fetch_format: "auto" });
 
     const enhancedUrl = cloudinary.url(uploadResult.public_id, {

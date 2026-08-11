@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">RKC Photo Studio</string>
+    <string name="title_activity_main">RKC Photo Studio</string>
+    <string name="package_name">com.rkc.photostudio</string>
+    <string name="custom_url_scheme">com.rkc.photostudio</string>
+</resources>
