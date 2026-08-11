@@ -24,23 +24,52 @@ app.post('/api/enhance', upload.single('image'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
 
+    // Safely parse slider and preset values with numeric fallbacks to prevent HTTP 400 errors
+    const preset = req.body.preset || 'crisp';
+    const brightness = parseInt(req.body.brightness, 10) || 0;
+    const contrast = parseInt(req.body.contrast, 10) || 0;
+    const saturation = parseInt(req.body.saturation, 10) || 0;
+    const sharpness = parseInt(req.body.sharpness, 10) || 0;
+    const vignette = parseInt(req.body.vignette, 10) || 0;
+
     // Upload image to Cloudinary
     const uploadResult = await cloudinary.uploader.upload(req.file.path, {
       folder: "photo_upscaler_uploads"
     });
 
-    // Bulletproof stable transformation that guarantees zero HTTP 400 errors
+    // Build a safe transformation array using structured objects (prevents URL syntax errors)
+    let transformations = [];
+
+    // Apply preset logic safely
+    if (preset === 'cinematic') {
+      transformations.push({ effect: "improve" }, { effect: "saturation:15" }, { effect: "contrast:10" });
+    } else if (preset === 'noir') {
+      transformations.push({ effect: "grayscale" }, { effect: "contrast:30" }, { effect: "vignette:40" });
+    } else if (preset === 'golden') {
+      transformations.push({ effect: "improve" }, { effect: "art:antico" }, { effect: "brightness:10" });
+    } else {
+      transformations.push({ effect: "improve" }, { effect: "sharpen:20" });
+    }
+
+    // Safely append optional adjustment sliders only if non-zero
+    if (brightness !== 0) transformations.push({ effect: `brightness:${brightness}` });
+    if (contrast !== 0) transformations.push({ effect: `contrast:${contrast}` });
+    if (saturation !== 0) transformations.push({ effect: `saturation:${saturation}` });
+    if (sharpness !== 0) transformations.push({ effect: `sharpen:${sharpness}` });
+    if (vignette > 0) transformations.push({ effect: `vignette:${vignette}` });
+
+    // Enforce optimization standards (f_auto, q_auto)
+    transformations.push({ quality: "auto:best" }, { fetch_format: "auto" });
+
     const enhancedUrl = cloudinary.url(uploadResult.public_id, {
-      effect: "improve",
-      quality: "auto:best",
-      fetch_format: "auto"
+      transformation: transformations
     });
 
     await fs.unlink(req.file.path);
     res.json({ success: true, resultUrl: enhancedUrl });
 
   } catch (error) {
-    console.error(error);
+    console.error("Enhancement error:", error);
     if (req.file) await fs.unlink(req.file.path).catch(console.error);
     res.status(500).json({ success: false, error: 'Failed to process image' });
   }
